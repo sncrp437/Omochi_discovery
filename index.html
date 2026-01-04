@@ -115,7 +115,7 @@
 </head>
 
 <body>
-<script src="https://www.youtube.com/iframe_api"></script>
+
 <div class="app">
   <div class="stage">
 
@@ -156,7 +156,6 @@ const FEED_URL = "https://script.google.com/macros/s/AKfycbwGCFwE01RsFGlERTNtcSS
 /* ==============================
    STATE
 ============================== */
-let player;  
 let FEED = [];
 let index = 0;
 
@@ -177,19 +176,12 @@ function embedSrc(id) {
 }
 
 function render() {
-  if (!FEED.length || !player) return;
-
+  if (!FEED.length) return;
   const item = FEED[index];
-
+  yt.src = embedSrc(item.youtube_id);
   venueEl.textContent = item.venue_name;
   hookEl.textContent = item.hook_text;
-
-  player.loadVideoById({
-    videoId: item.youtube_id,
-    suggestedQuality: "hd720"
-  });
 }
-
 
 function next() {
   index = (index + 1) % FEED.length;
@@ -204,26 +196,6 @@ function prev() {
 /* ==============================
    FETCH FROM APPS SCRIPT
 ============================== */
-function onYouTubeIframeAPIReady() {
-  player = new YT.Player("yt", {
-    playerVars: {
-      autoplay: 1,
-      mute: 1,
-      playsinline: 1,
-      rel: 0
-    },
-    events: {
-      onStateChange: onPlayerStateChange
-    }
-  });
-}
-
-function onPlayerStateChange(event) {
-  if (event.data === YT.PlayerState.ENDED) {
-    next(); // auto-scroll fallback
-  }
-}
-  
 async function loadFeed() {
   try {
     const res = await fetch(FEED_URL);
@@ -235,7 +207,7 @@ async function loadFeed() {
     }
 
     FEED = json.items;
-    if (player) render();
+    render();
   } catch (err) {
     venueEl.textContent = "Failed to load feed";
     console.error(err);
