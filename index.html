@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Omochi Discovery Feed – Embed Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Omochi Discovery Feed – GAS Test</title>
 
   <style>
     html, body {
@@ -13,26 +13,15 @@
       color: #fff;
       overflow: hidden;
       font-family: system-ui, -apple-system, BlinkMacSystemFont;
-      touch-action: none;
     }
 
-    .app {
+    .stage {
       position: fixed;
       inset: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    /* 9:16 stage */
-    .stage {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
       max-width: calc(100vh * 9 / 16);
       max-height: calc(100vw * 16 / 9);
+      margin: auto;
       background: #000;
-      overflow: hidden;
     }
 
     iframe {
@@ -40,27 +29,16 @@
       height: 100%;
       border: 0;
       display: block;
+      background: #000;
     }
 
-    /* swipe capture layer */
-    .swipe-layer {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      background: transparent;
-      touch-action: none;
-    }
-
-    /* text overlay */
     .overlay {
       position: absolute;
       left: 0;
       right: 0;
       bottom: 0;
-      padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
-      background: linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,0));
-      z-index: 3;
-      pointer-events: none;
+      padding: 16px;
+      background: linear-gradient(to top, rgba(0,0,0,.8), transparent);
     }
 
     .venue {
@@ -75,140 +53,53 @@
       margin: 0;
     }
 
-    /* actions */
-    .actions {
-      position: absolute;
-      right: 12px;
-      bottom: 110px;
-      z-index: 4;
-      pointer-events: auto;
-    }
-
-    .btn {
-      border: 0;
-      padding: 12px 16px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.18);
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-    }
-
-    /* modal */
-    .modal-backdrop {
+    .debug {
       position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.6);
-      display: none;
-      align-items: flex-end;
-      justify-content: center;
-      padding: 16px;
-      z-index: 10;
-    }
-
-    .modal-backdrop[aria-hidden="false"] {
-      display: flex;
-    }
-
-    .modal {
-      background: #141416;
-      border-radius: 20px;
-      padding: 16px;
-      width: min(520px, 100%);
-    }
-
-    .modal h3 {
-      margin: 0 0 8px;
-      font-size: 16px;
-    }
-
-    .modal p {
-      margin: 0 0 14px;
-      font-size: 13px;
-      opacity: .75;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .btn-primary {
-      background: #fff;
-      color: #000;
+      top: 6px;
+      left: 6px;
+      font-size: 11px;
+      opacity: .6;
     }
   </style>
 </head>
 
 <body>
 
-<div class="app">
-  <div class="stage" id="stage">
+<div class="stage">
+  <iframe id="yt"></iframe>
 
-    <!-- YouTube iframe -->
-    <iframe
-      id="yt"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      referrerpolicy="strict-origin-when-cross-origin"
-      allowfullscreen>
-    </iframe>
-
-    <!-- swipe layer -->
-    <div class="swipe-layer" id="swipeLayer"></div>
-
-    <!-- actions -->
-    <div class="actions">
-      <button class="btn" id="collectBtn">Collect</button>
-    </div>
-
-    <!-- text overlay -->
-    <div class="overlay">
-      <p class="venue" id="venueName"></p>
-      <p class="hook" id="hookText"></p>
-    </div>
-
+  <div class="overlay">
+    <p class="venue" id="venueName">Loading…</p>
+    <p class="hook" id="hookText"></p>
   </div>
 </div>
 
-<!-- modal -->
-<div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
-  <div class="modal">
-    <h3>Save this venue in Omochi</h3>
-    <p>To collect this place, please log in or create an account.</p>
-    <div class="modal-actions">
-      <button class="btn btn-primary" id="loginBtn">Log in</button>
-      <button class="btn" id="signupBtn">Sign up</button>
-      <button class="btn" id="closeModalBtn">Cancel</button>
-    </div>
-  </div>
-</div>
+<div class="debug" id="debug"></div>
 
 <script>
-/* === YOUR ACTUAL EMBED-ALLOWED VIDEOS === */
-const FEED = [
-  {
-    venueName: "六本木 焼肉",
-    hookText: "この雰囲気で焼肉は反則",
-    youtubeId: "sIUMfsnDCOE",
-    collectLink: "https://omochiapp.com/collect?v=roppongi-yakiniku"
-  },
-  {
-    venueName: "高田馬場 京鴨",
-    hookText: "京鴨で語る。",
-    youtubeId: "Kg7wRh24Lmw",
-    collectLink: "https://omochiapp.com/collect?v=takadanobaba-kamo"
-  }
-];
+/* ===============================
+   CONFIG
+================================ */
 
+// 🔴 REPLACE WITH YOUR ACTUAL WEB APP URL
+const FEED_URL =
+  "https://script.google.com/macros/s/AKfycbwGCFwE01RsFGlERTNtcSSm1I8AgJDNlIvBMZSdGAz_HhXRsyhLn-eTCEErXRmdUQLV/exec?action=feed";
+
+/* ===============================
+   STATE
+================================ */
+
+let FEED = [];
 let index = 0;
 
 const yt = document.getElementById("yt");
 const venueEl = document.getElementById("venueName");
 const hookEl = document.getElementById("hookText");
-const swipeLayer = document.getElementById("swipeLayer");
-const modal = document.getElementById("modalBackdrop");
+const debugEl = document.getElementById("debug");
+
+/* ===============================
+   VIDEO
+================================ */
 
 function embedSrc(id) {
   return `https://www.youtube.com/embed/${id}?playsinline=1&autoplay=1&mute=1&rel=0`;
@@ -216,62 +107,52 @@ function embedSrc(id) {
 
 function render() {
   const item = FEED[index];
-  yt.src = embedSrc(item.youtubeId);
-  venueEl.textContent = item.venueName;
-  hookEl.textContent = item.hookText;
+  if (!item) return;
+
+  yt.src = "about:blank";
+  setTimeout(() => {
+    yt.src = embedSrc(item.youtube_id);
+  }, 50);
+
+  venueEl.textContent = item.venue_name;
+  hookEl.textContent = item.hook_text;
+
+  debugEl.textContent = `Item ${index + 1} / ${FEED.length}`;
 }
 
-function next() {
-  index = (index + 1) % FEED.length;
-  render();
-}
+/* ===============================
+   FETCH
+================================ */
 
-function prev() {
-  index = (index - 1 + FEED.length) % FEED.length;
-  render();
-}
+async function loadFeed() {
+  try {
+    const res = await fetch(FEED_URL);
+    const json = await res.json();
 
-/* swipe handling */
-let startY = 0;
-let startX = 0;
-let swiping = false;
-const THRESHOLD = 60;
+    console.log("FEED RESPONSE:", json);
 
-swipeLayer.addEventListener("touchstart", e => {
-  if (e.touches.length !== 1) return;
-  startY = e.touches[0].clientY;
-  startX = e.touches[0].clientX;
-  swiping = true;
-}, { passive: true });
+    FEED = json.items || [];
 
-swipeLayer.addEventListener("touchend", e => {
-  if (!swiping) return;
-  const dy = e.changedTouches[0].clientY - startY;
-  const dx = e.changedTouches[0].clientX - startX;
-  swiping = false;
+    if (!FEED.length) {
+      venueEl.textContent = "No items";
+      return;
+    }
 
-  if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > THRESHOLD) {
-    dy < 0 ? next() : prev();
+    render();
+
+  } catch (err) {
+    venueEl.textContent = "Fetch error";
+    debugEl.textContent = err.message;
+    console.error(err);
   }
-}, { passive: true });
+}
 
-/* modal */
-document.getElementById("collectBtn").onclick = () =>
-  modal.setAttribute("aria-hidden", "false");
+/* ===============================
+   INIT
+================================ */
 
-document.getElementById("closeModalBtn").onclick = () =>
-  modal.setAttribute("aria-hidden", "true");
-
-document.getElementById("loginBtn").onclick = () =>
-  location.href = `https://omochiapp.com/login?next=${encodeURIComponent(FEED[index].collectLink)}`;
-
-document.getElementById("signupBtn").onclick = () =>
-  location.href = `https://omochiapp.com/signup?next=${encodeURIComponent(FEED[index].collectLink)}`;
-
-/* init */
-render();
+loadFeed();
 </script>
 
 </body>
 </html>
-
